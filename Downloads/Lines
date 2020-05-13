@@ -1,0 +1,326 @@
+#include <iostream>
+#include <cstring>
+#include <iomanip>
+#include <stdio.h>
+#include <fstream>
+#include <cstdlib>
+#include <math.h>
+#include "new.hpp"
+#include <vector>
+
+const int SIZE = 10;
+
+using namespace std;
+
+int main()
+{
+    srand(time(0));
+    int tempBallSaver;
+    int turnCounter = 1;
+    int sw = 0;
+    int sh = 0;
+    int ew = 0;
+    int eh = 0;
+    int targetInt = 99;
+    int mass[SIZE][SIZE];
+    int tempo[SIZE][SIZE];
+    int showWayArray[SIZE][SIZE];
+    int temp1;
+    int temp2;
+    int BallColor;
+    for ( int i = 0 ; i < SIZE ; ++i ) // заполнить массив нулями
+    {
+        for ( int j = 0 ; j < SIZE ; ++j )
+        {
+            mass[i][j] = 0;
+        }
+    }
+    
+    while ( true )
+    {
+        bool TargetFound = false;
+        while ( TargetFound == false )
+        {
+    int k = 3;
+    do // k случайных ячейки заполняются шарами
+    {
+        temp1 = rand()%10;
+        temp2 = rand()%10;
+        if ( mass[temp1][temp2] == 0 )
+        {
+            --k;
+            BallColor = -(rand()%3)-1;
+            mass[temp1][temp2] = BallColor;
+        }
+        else
+        continue;
+    }
+    while ( k != 0 );
+            
+    cout << "\n3 random color balls are generated!\nBefore Deletion\n";
+            
+            
+    for ( int i = 0 ; i < SIZE ; ++i )
+    {
+        for ( int j = 0 ; j < SIZE ; ++j )
+        cout << setfill('0') << setw(2) << mass[i][j] << " ";
+            cout << endl;
+    }
+    cout << endl;
+            
+            for ( int i = 0 ; i < SIZE ; ++i )  // удаление шаров, если есть 5 в ряд или в столбец
+            {
+                for ( int j = 0 ; j < SIZE ; ++j )
+                {
+                    if ( ( mass[i][j] == mass[i][j+1] && mass[i][j+1] == mass[i][j+2] && mass[i][j+2] == mass[i][j+3] && mass[i][j+3] == mass[i][j+4] ) && j+4<= SIZE -1)
+                    {
+                        //cout << mass[i][j] << " = " <<  mass[i][j+1] << " = " <<  mass[i][j+2] << " = " << mass[i][j+3] << " = " <<  mass[i][j+4] << endl;
+                        mass[i][j] = mass[i][j+1] = mass[i][j+2] = mass[i][j+3] = mass[i][j+4] = 0;
+                    }
+                    if ( ( mass[i][j] == mass[i+1][j] && mass[i+1][j] == mass[i+2][j] && mass[i+2][j] == mass[i+3][j] && mass[i+3][j] == mass[i+4][j] ) && j+4<= SIZE -1)
+                    {
+                        mass[i][j] = mass[i+1][j] = mass[i+2][j] = mass[i+3][j] = mass[i+4][j] = 0;
+                    }
+                }
+            }
+    cout << "\nAfter Deletion\n";
+    for ( int i = 0 ; i < SIZE ; ++i )
+    {
+        for ( int j = 0 ; j < SIZE ; ++j )
+        cout << setfill('0') << setw(2) << mass[i][j] << " ";
+            cout << endl;
+    }
+    
+    memcpy(tempo, mass, sizeof(mass) ); // скопировать массив mass в tempo, с которым и будем работать
+    
+    while ( sw == ew && sh == eh )
+    {
+    do
+    {
+    cout << "Put start coordinates.\n";
+    cout << "Enter start Row: ";
+    cin >> sw;
+    cout << "Enter start Column: ";
+    cin >> sh;
+        if ( tempo[sw][sh] == 0 )       // запрещенно вычислять путь от пустой стартовой клетки
+            cout << "ERROR! You can't make a move a ball from this cell because it is empty!\n";
+    } while ( tempo[sw][sh] == 0 );
+    do
+    {
+    cout << "Put destination coordinates.\n";
+    cout << "Enter destination Row: ";
+    cin >> ew;
+    cout << "Enter destination Column: ";
+    cin >> eh;
+        if ( tempo[ew][eh] != 0 )       // запрещено вычислять путь к занятой клетке
+            cout << "ERROR! CELL is not empty!\n";
+    } while ( (sw == ew && sh == eh) || tempo[ew][eh] != 0 );
+        if ( sw == ew && sh == eh )     // клетка старта и финиша не может быть одной и той же
+        cout << "ERROR! Source and destination targets can't be the same!\n";
+    }
+        cout << "\n\nYou choose the target. It is marked as 99 on the field\n\n";
+        tempo[ew][eh] = targetInt;                 // помечаем нашу цель
+
+    for ( int i = 0 ; i < SIZE ; ++i ) // отображение дубликата массива
+    {
+        for ( int j = 0 ; j < SIZE ; ++j )
+        {
+            cout << setfill('0') << setw(2) << tempo[i][j] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+
+            bool StartPointisNextToDestination = false;
+    int controller = 1;
+    if ( tempo[sw+controller][sh] == targetInt && sw+controller <= SIZE-1 ) // проверка на случай, если соседняя клетка и есть destination
+    {
+        TargetFound = true;
+        StartPointisNextToDestination= true;
+    }
+    if ( tempo[sw-controller][sh] == targetInt && sw-controller >= 0 )
+        {
+            TargetFound = true;
+            StartPointisNextToDestination= true;
+        }
+    if ( tempo[sw][sh+controller] == targetInt && sh+controller <= SIZE-1 )
+        {
+            TargetFound = true;
+            StartPointisNextToDestination= true;
+        }
+    if ( tempo[sw][sh-controller] == targetInt && sh-controller >= 0 )
+        {
+            TargetFound = true;
+            StartPointisNextToDestination= true;
+        }
+            
+    if ( tempo[sw+controller][sh] == 0 && sw+controller <= SIZE-1 ) // в этом блоке вокруг стартовой точки проставим единицы, если клетка не занята
+        tempo[sw+controller][sh] = controller;
+    if ( tempo[sw-controller][sh] == 0 && sw-controller >= 0 )
+        tempo[sw-controller][sh] = controller;
+    if ( tempo[sw][sh+controller] == 0 && sh+controller <= SIZE-1 )
+        tempo[sw][sh+controller] = controller;
+    if ( tempo[sw][sh-controller] == 0 && sh-controller >= 0 )
+        tempo[sw][sh-controller] = controller;
+    
+    
+    int waveStopIncreasing = 0; // индикатор того продолжается ли волна
+    while ( controller < 100 && TargetFound == false ) // int waveStopIncreasing = 0;
+    {
+//        for ( int i = 0 ; i < SIZE ; ++i ) // тут можно посмотреть каждую итерацию волны
+//        {
+//            for ( int j = 0 ; j < SIZE ; ++j )
+//            {
+//                 cout << setfill('0') << setw(2) << tempo[i][j] << " "; // cout << i << j << " ";//
+//            }
+//            cout << endl;
+//        }
+//        cout << endl << endl;
+        for ( int i = 0 ; i < SIZE ; ++i )
+        {
+            for ( int j = 0 ; j < SIZE ; ++j )
+            {
+                if ( tempo[i][j] == controller )
+                {
+                    if ( tempo[i+1][j] == 0 && i+1 <= SIZE-1 )
+                    {
+                        tempo[i+1][j] = controller+1;
+                        waveStopIncreasing++;
+                    }
+                    if ( tempo[i-1][j] == 0 && i-1 >= 0 )
+                        {
+                        tempo[i-1][j] = controller+1;
+                        waveStopIncreasing++;
+                        }
+                    if ( tempo[i][j+1] == 0 && j+1 <= SIZE-1 )
+                    {
+                        tempo[i][j+1] = controller+1;
+                        waveStopIncreasing++;
+                    }
+                    if ( tempo[i][j-1] == 0 && j-1 >= 0 )
+                    {
+                        tempo[i][j-1] = controller+1;
+                        waveStopIncreasing++;
+                    }
+                    if ( (tempo[i+1][j] == targetInt && i+1 <= SIZE-1) ||
+                         (tempo[i-1][j] == targetInt && i-1 >= 0) ||
+                         (tempo[i][j+1] == targetInt && j+1 <= SIZE-1) ||
+                         (tempo[i][j-1] == targetInt && j-1 >= 0)      )
+                        // если условие истинно, значит мы пришли к точке, к которой искали путь, значит можно остановиться
+                    {
+                        //cout << "WE WAS HERE!!\n\n";
+                        waveStopIncreasing = 0;
+                        TargetFound = true;
+                    }
+                }
+            }
+        }
+        if ( waveStopIncreasing == 0 || TargetFound ) // если была итариция при которой tempo[i][j] ни разу не был равен  controller, значит путь уже найти невозможно. Если TargetFound == true значит кратчайший путь найдет и можно тоже выходить из цикла
+        {
+            //cout << "We are here because waveStopIncreasing = " << waveStopIncreasing << " after FOR cycle\n";
+            break;
+        }
+        waveStopIncreasing = 0;
+        controller++;
+    }
+    
+    
+    memcpy(showWayArray, mass, sizeof(mass) );
+    showWayArray[ew][eh] = targetInt;
+    temp1 = ew;
+    temp2 = eh;
+    if ( TargetFound ) // если путь найден, то нужно удалить все волны и оставить только одну, которая отображает единственный кратчайший путь
+    {
+        cout << "We found the way to the Target!";
+        for ( ; controller > 0 ; --controller)
+        {
+            if ( controller == 1 && StartPointisNextToDestination == true )
+            {
+                cout << "\nStart Point is next to end Point. No need to create a trace.";
+                break;
+            }
+                       if ( tempo[temp1+1][temp2] == controller && temp1+1 <= SIZE-1 )
+                       {
+                           showWayArray[temp1+1][temp2] = tempo[temp1+1][temp2];
+                           ++temp1;
+                           //--controller;
+                           continue;
+                       }
+                       if ( tempo[temp1-1][temp2] == controller && temp1-1 >= 0 )
+                           {
+                            showWayArray[temp1-1][temp2] = tempo[temp1-1][temp2];
+                               --temp1;
+                            //--controller;
+                            continue;
+                           }
+                       if ( tempo[temp1][temp2+1] == controller && temp2+1 <= SIZE-1 )
+                       {
+                           showWayArray[temp1][temp2+1] = tempo[temp1][temp2+1];
+                           ++temp2;
+                           //--controller;
+                           continue;
+                       }
+                       if ( tempo[temp1][temp2-1] == controller && temp2-1 >= 0 )
+                       {
+                           showWayArray[temp1][temp2-1] = tempo[temp1][temp2-1];
+                           --temp2;
+                           //--controller;
+                           continue;
+                       }
+        }
+        
+        //    for ( int i = 0 ; i < SIZE ; ++i ) // DEBUG отображение всех волн
+        //    {
+        //        for ( int j = 0 ; j < SIZE ; ++j )
+        //        {
+        //              cout << setfill('0') << setw(2) << tempo[i][j] << " "; //cout << i << j << " ";// cout << setfill('0') << setw(2) << tempo[i][j] << " ";
+        //        }
+        //        cout << endl;
+        //    }
+        
+        cout << endl << endl;
+        for ( int i = 0 ; i < SIZE ; ++i ) // отображение кратчайшего пути!
+        {
+            for ( int j = 0 ; j < SIZE ; ++j )
+            {
+                  cout << setfill('0') << setw(2) << showWayArray[i][j] << " ";
+            }
+            cout << endl;
+        }
+    }
+    else
+    {
+        cout << "There is no way to the Target :(\n\n";
+        tempo[ew][eh] = 0; // возвращаем цели значение 0
+    }
+    } // закрытие цикла while ( TargetFound == false )
+        tempBallSaver = mass[sw][sh];
+        mass[ew][eh] = tempBallSaver;
+        mass[sw][sh] = 0;
+        sw = ew = 0; // это нужно чтобы наступил следующий ход
+        sh = eh = 0;
+        turnCounter++;
+        cout << "\n\nThe ball is moved from start point and placed instead of 99.\n" <<  turnCounter << " TURN!";
+        for ( int i = 0 ; i < SIZE ; ++i )  // удаление шаров, если есть 5 в ряд или в столбец
+        {
+            for ( int j = 0 ; j < SIZE ; ++j )
+            {
+                if ( ( mass[i][j] == mass[i][j+1] && mass[i][j+1] == mass[i][j+2] && mass[i][j+2] == mass[i][j+3] && mass[i][j+3] == mass[i][j+4] ) && j+4<= SIZE -1)
+                {
+                    //cout << mass[i][j] << " = " <<  mass[i][j+1] << " = " <<  mass[i][j+2] << " = " << mass[i][j+3] << " = " <<  mass[i][j+4] << endl;
+                    mass[i][j] = mass[i][j+1] = mass[i][j+2] = mass[i][j+3] = mass[i][j+4] = 0;
+                }
+                if ( ( mass[i][j] == mass[i+1][j] && mass[i+1][j] == mass[i+2][j] && mass[i+2][j] == mass[i+3][j] && mass[i+3][j] == mass[i+4][j] ) && j+4<= SIZE -1)
+                {
+                    mass[i][j] = mass[i+1][j] = mass[i+2][j] = mass[i+3][j] = mass[i+4][j] = 0;
+                }
+            }
+        }
+    } // Закрытие основного цикла программы while ( true )
+
+    return 0;
+}
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
